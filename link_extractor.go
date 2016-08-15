@@ -13,6 +13,7 @@ type LinkExtractor struct {
 }
 
 type SiteLinks struct {
+  Url string
   PageLinks []string
   ResourceLinks []string
 }
@@ -25,7 +26,7 @@ func (this *LinkExtractor) getLinks() SiteLinks {
   }
   pageLinks := this.collectPageLinks(parsedBody, []string{})
   resourceLinks := this.collectResourceLinks(parsedBody, []string{})
-  return SiteLinks{pageLinks, resourceLinks}
+  return SiteLinks{this.url, pageLinks, resourceLinks}
 }
 
 func (this *LinkExtractor) collectPageLinks(rootNode *html.Node, links []string) []string {

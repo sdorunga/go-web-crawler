@@ -88,10 +88,12 @@ func TestPrintsCorrectLinksAndStaticAssetsOnOnePage(t *testing.T) {
     "Crawled " + site + " and found the following.",
     "Links:",
     "------",
-    "https://site.com/about\nhttps://site.com/blog",
+    site + ":",
+    "    https://site.com/about\n    https://site.com/blog",
     "Static Assets:",
     "--------------",
-    "https://cdn.static/img/horse.png",
+    site + ":",
+    "    https://cdn.static/img/horse.png",
   }
   crawler.Print()
 

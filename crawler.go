@@ -64,12 +64,14 @@ func (this *Crawler) Print() {
   this.printer.Println("Links:")
   this.printer.Println("------")
   if (len(this.links.PageLinks) > 0) {
-    this.printer.Println(strings.Join(this.links.PageLinks, "\n"))
+    this.printer.Println(this.links.Url + ":")
+    this.printer.Println("    " + strings.Join(this.links.PageLinks, "\n    "))
   }
   this.printer.Println("Static Assets:")
   this.printer.Println("--------------")
   if (len(this.links.PageLinks) > 0) {
-    this.printer.Println(strings.Join(this.links.ResourceLinks, "\n"))
+    this.printer.Println(this.links.Url + ":")
+    this.printer.Println("    " + strings.Join(this.links.ResourceLinks, "\n    "))
   }
 }
 
