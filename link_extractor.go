@@ -32,7 +32,9 @@ func (this *LinkExtractor) getLinks() SiteLinks {
 func (this *LinkExtractor) collectPageLinks(rootNode *html.Node, links []string) []string {
   for node := rootNode.FirstChild; node != nil; node = node.NextSibling {
     if link := this.extractInternalLink(node); link != "" {
-          links = append(links, link)
+      if !contains(links, link) {
+        links = append(links, link)
+      }
     }
     links = this.collectPageLinks(node, links)
   }
@@ -43,7 +45,9 @@ func (this *LinkExtractor) collectPageLinks(rootNode *html.Node, links []string)
 func (this *LinkExtractor) collectResourceLinks(rootNode *html.Node, links []string) []string {
   for node := rootNode.FirstChild; node != nil; node = node.NextSibling {
     if link := this.extractInternalResourceLink(node); link != "" {
-          links = append(links, link)
+      if !contains(links, link) {
+        links = append(links, link)
+      }
     }
     links = this.collectResourceLinks(node, links)
   }
@@ -81,17 +85,29 @@ func (this *LinkExtractor) absolutifyUrl(link string) *url.URL{
     fmt.Println("Malformed Url", link)
   }
   if linkUrl.Host == "" {
-    linkUrl.Scheme = "https"
-    linkUrl.Host = "site.com"
+    linkUrl.Scheme = this.parsedUrl().Scheme
+    linkUrl.Host = this.parsedUrl().Host
   }
   return linkUrl
 }
 
 func (this *LinkExtractor) isInternalLink(link *url.URL) bool{
+  return link.Host == this.parsedUrl().Host
+}
+
+func (this *LinkExtractor) parsedUrl() *url.URL {
   parsedUrl, err := url.Parse(this.url)
   if err != nil {
     fmt.Println("Malformed Url", this.url)
   }
-  host := parsedUrl.Host
-  return link.Host == host
+  return parsedUrl
+}
+
+func contains(list []string, item string) bool {
+  for _, listItem := range list {
+    if listItem == item {
+      return true 
+    }
+  }
+  return false
 }

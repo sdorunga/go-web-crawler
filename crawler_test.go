@@ -89,7 +89,7 @@ func TestPrintsCorrectLinksAndStaticAssetsOnOnePage(t *testing.T) {
     "Links:",
     "------",
     site + ":",
-    "    https://site.com/about\n    https://site.com/blog",
+    "    https://site.com/about\n    http://site.com/blog",
     "Static Assets:",
     "--------------",
     site + ":",
