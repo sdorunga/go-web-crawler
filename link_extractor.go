@@ -23,6 +23,7 @@ func (this *LinkExtractor) getLinks() SiteLinks {
   parsedBody, err := html.Parse(strings.NewReader(body))
   if err != nil {
     fmt.Println("Failed to parse the HTTP response")
+    return SiteLinks{}
   }
   pageLinks := this.collectPageLinks(parsedBody, []string{})
   resourceLinks := this.collectResourceLinks(parsedBody, []string{})
@@ -106,7 +107,7 @@ func (this *LinkExtractor) parsedUrl() *url.URL {
 func contains(list []string, item string) bool {
   for _, listItem := range list {
     if listItem == item {
-      return true 
+      return true
     }
   }
   return false

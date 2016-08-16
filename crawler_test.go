@@ -42,7 +42,7 @@ func TestPrintsEmptyOutputWhenNoLinks(t *testing.T) {
   httpClient := http.Client{Transport: transport}
   client := &Client{httpClient}
   printer := TestPrinter{}
-  crawler := Crawler{&printer, site, client, SiteLinks{}}
+  crawler := Crawler{printer: &printer, url: site, client: client}
   crawler.Crawl()
   printer.expected = []string{
     "Crawled " + site + " and found the following.",
@@ -64,16 +64,20 @@ func TestPrintsCorrectLinksAndStaticAssetsOnOnePage(t *testing.T) {
   server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(200)
     w.Header().Set("Content-Type", "application/json")
-    fmt.Fprintln(w,
-  `<!DOCTYPE html>
-  <html>
-    <body>
+    if r.RequestURI == site + "/" {
+      fmt.Fprintln(w,
+      `<!DOCTYPE html>
+      <html>
+      <body>
       <a href="https://site.com/about">About</a>
       <a href="/blog">Blog</a>
       <a href="https://externalsite.com/about">About External</a>
       <img src="https://cdn.static/img/horse.png"
-    </body>
-  </html>`)
+      </body>
+      </html>`)
+    } else {
+      fmt.Fprintln(w, "")
+    }
   }))
   transport := &http.Transport{
     Proxy: func(req *http.Request) (*url.URL, error) {
@@ -82,7 +86,7 @@ func TestPrintsCorrectLinksAndStaticAssetsOnOnePage(t *testing.T) {
   }
   httpClient := http.Client{Transport: transport}
   client := &Client{httpClient}
-  crawler := Crawler{&printer, site, client, SiteLinks{}}
+  crawler := Crawler{printer: &printer, url: site, client: client}
   crawler.Crawl()
   printer.expected = []string{
     "Crawled " + site + " and found the following.",

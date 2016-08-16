@@ -3,15 +3,13 @@ package main
 import (
   "os"
   "fmt"
-  "net/http"
-  "io/ioutil"
   "strings"
 )
 
 func main() {
   url := os.Args[1]
-  Client := &Client{http.Client{}}
-  crawler := Crawler{&TerminalPrinter{}, url, Client, SiteLinks{}}
+  Client := NewClient()
+  crawler := Crawler{printer: &TerminalPrinter{}, url: url, client: Client}
   crawler.Crawl()
   crawler.Print()
 }
@@ -27,51 +25,55 @@ func (this *TerminalPrinter) Println(line string) {
   fmt.Println(line)
 }
 
-type HttpClient interface {
-  Get(string) string
-}
-
-type Client struct {
-  client http.Client
-}
-
-func (this *Client) Get(url string) string{
-  resp, err := this.client.Get(url)
-  if err != nil {
-    fmt.Println("Error parsing url:", url)
-  }
-  body, err := ioutil.ReadAll(resp.Body)
-  if err != nil {
-    fmt.Println("Could not read body for request:", url)
-  }
-  return string(body)
-}
-
 type Crawler struct {
   printer Printer
   url string
   client HttpClient
-  links SiteLinks
+  links []SiteLinks
+  seenLinks []string
 }
 
 func (this *Crawler) Crawl() {
   extractor := LinkExtractor{this.client, this.url}
-  this.links = extractor.getLinks()
+  this.links = append(this.links, extractor.getLinks())
+  this.seenLinks = append(this.seenLinks, this.url)
+
+  this.crawlRelatedPages(extractor.getLinks().PageLinks)
+}
+
+func (this *Crawler) crawlRelatedPages(pageLinks []string) {
+  if len(pageLinks) == 0 {
+    return
+  }
+  for _, url := range pageLinks {
+    if contains(this.seenLinks, url) {
+      continue
+    }
+    this.seenLinks = append(this.seenLinks, url)
+    fmt.Println(url)
+    extractor := LinkExtractor{this.client, url}
+    this.links = append(this.links, extractor.getLinks())
+    this.crawlRelatedPages(extractor.getLinks().PageLinks)
+  }
 }
 
 func (this *Crawler) Print() {
   this.printer.Println("Crawled " + this.url + " and found the following.")
   this.printer.Println("Links:")
   this.printer.Println("------")
-  if (len(this.links.PageLinks) > 0) {
-    this.printer.Println(this.links.Url + ":")
-    this.printer.Println("    " + strings.Join(this.links.PageLinks, "\n    "))
+  for _, link := range this.links {
+    if (len(link.PageLinks) > 0) {
+      this.printer.Println(link.Url + ":")
+      this.printer.Println("    " + strings.Join(link.PageLinks, "\n    "))
+    }
   }
   this.printer.Println("Static Assets:")
   this.printer.Println("--------------")
-  if (len(this.links.PageLinks) > 0) {
-    this.printer.Println(this.links.Url + ":")
-    this.printer.Println("    " + strings.Join(this.links.ResourceLinks, "\n    "))
+  for _, link := range this.links {
+    if (len(link.ResourceLinks) > 0) {
+      this.printer.Println(link.Url + ":")
+      this.printer.Println("    " + strings.Join(link.ResourceLinks, "\n    "))
+    }
   }
 }
 
